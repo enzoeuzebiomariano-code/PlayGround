@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#14224a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>Mundo dos Cogumelos — Uma aventura estelar</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M10 32C10 12 54 12 54 32Z' fill='%23e04747' stroke='%237c2332' stroke-width='4'/%3E%3Ccircle cx='24' cy='24' r='5' fill='%23fff2c6'/%3E%3Ccircle cx='42' cy='21' r='4' fill='%23fff2c6'/%3E%3Crect x='22' y='31' width='20' height='24' rx='9' fill='%23f6e5c4' stroke='%237c2332' stroke-width='4'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main id="game-shell" aria-label="Mundo dos Cogumelos">
+    <canvas id="game-canvas" width="960" height="540" aria-label="Área do jogo"></canvas>
+
+    <div id="hud" class="hud hidden" aria-live="polite">
+      <div class="hud-row">
+        <div class="hud-group hud-life">
+          <div id="hearts" class="hearts" aria-label="Corações"></div>
+          <div class="hud-stage">
+            <span id="world-label">Mundo 1</span>
+            <span class="dot">•</span>
+            <span id="stage-label">Fase 1</span>
+          </div>
+        </div>
+        <div class="hud-group hud-stage-name">
+          <span id="stage-name">Colinas de Cogumelo</span>
+        </div>
+        <div class="hud-group hud-stats">
+          <div class="stat stat-coin" title="Moedas">
+            <span class="stat-icon coin-icon" aria-hidden="true"></span>
+            <span id="coin-count">0</span>
+          </div>
+          <div class="stat stat-star" title="Estrelas">
+            <span class="stat-icon star-icon" aria-hidden="true">★</span>
+            <span id="star-count">0/3</span>
+          </div>
+          <div class="stat stat-score" title="Pontuação">
+            <span id="score-value">000000</span>
+          </div>
+          <button id="btn-sound" class="icon-btn" type="button" aria-label="Ligar ou desligar o som" title="Som (M)">
+            <span class="sound-on" aria-hidden="true">♪</span>
+            <span class="sound-off" aria-hidden="true">♪̸</span>
+          </button>
+          <button id="btn-pause" class="icon-btn" type="button" aria-label="Pausar" title="Pausar (Esc)">
+            <span aria-hidden="true">❚❚</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="boss-bar" class="boss-bar hidden" role="status">
+        <div class="boss-label">
+          <span id="boss-name">Chefe</span>
+          <span id="boss-title"></span>
+        </div>
+        <div class="boss-track"><div id="boss-fill" class="boss-fill"></div></div>
+      </div>
+    </div>
+
+    <div id="banner" class="banner hidden" aria-live="polite">
+      <div id="banner-kicker" class="banner-kicker">Mundo 1</div>
+      <div id="banner-title" class="banner-title">Colinas de Cogumelo</div>
+      <div id="banner-sub" class="banner-sub">Fase 1</div>
+    </div>
+
+    <div id="toast" class="toast hidden" aria-live="polite">
+      <span id="toast-icon" class="toast-icon" aria-hidden="true">★</span>
+      <span id="toast-text"></span>
+    </div>
+
+    <div id="touch-controls" class="touch-controls" aria-label="Controles de toque">
+      <div class="touch-pad">
+        <button class="touch-btn touch-left" data-action="left" type="button" aria-label="Andar para a esquerda">◀</button>
+        <button class="touch-btn touch-right" data-action="right" type="button" aria-label="Andar para a direita">▶</button>
+      </div>
+      <div class="touch-actions">
+        <button class="touch-btn touch-down" data-action="down" type="button" aria-label="Entrar no cano">▼</button>
+        <button class="touch-btn touch-run" data-action="run" type="button" aria-label="Correr">R</button>
+        <button class="touch-btn touch-jump" data-action="jump" type="button" aria-label="Pular">A</button>
+      </div>
+    </div>
+
+    <section id="title-screen" class="overlay title-screen" aria-label="Tela inicial">
+      <div class="title-scene">
+        <div class="title-mushroom" aria-hidden="true">
+          <svg viewBox="0 0 220 200" role="img" aria-hidden="true">
+            <ellipse cx="110" cy="183" rx="66" ry="12" fill="rgba(12,20,32,0.28)"/>
+            <path d="M70 84 C70 32 150 32 150 84 Z" fill="#e04747"/>
+            <path d="M70 84 C70 32 150 32 150 84 Z" fill="none" stroke="#7c2332" stroke-width="7" stroke-linejoin="round"/>
+            <path d="M70 84 Q110 66 150 84 L150 94 Q110 78 70 94 Z" fill="#f6e5c4" stroke="#7c2332" stroke-width="6"/>
+            <circle cx="92" cy="58" r="11" fill="#fff2c6"/>
+            <circle cx="126" cy="49" r="8" fill="#fff2c6"/>
+            <circle cx="112" cy="72" r="6" fill="#fff2c6"/>
+            <rect x="86" y="94" width="48" height="66" rx="19" fill="#f6e5c4" stroke="#7c2332" stroke-width="7"/>
+            <circle cx="101" cy="121" r="4" fill="#3a2634"/>
+            <circle cx="120" cy="121" r="4" fill="#3a2634"/>
+            <path d="M105 136 Q111 142 118 136" fill="none" stroke="#3a2634" stroke-width="4" stroke-linecap="round"/>
+            <path d="M84 108 Q60 116 58 138" fill="none" stroke="#7c2332" stroke-width="7" stroke-linecap="round"/>
+            <path d="M136 108 Q160 116 162 138" fill="none" stroke="#7c2332" stroke-width="7" stroke-linecap="round"/>
+            <path d="M93 158 L92 177" stroke="#7c2332" stroke-width="9" stroke-linecap="round"/>
+            <path d="M127 158 L128 177" stroke="#7c2332" stroke-width="9" stroke-linecap="round"/>
+            <path d="M83 177 Q92 172 101 177" fill="#5a3a24" stroke="#7c2332" stroke-width="5"/>
+            <path d="M119 177 Q128 172 137 177" fill="#5a3a24" stroke="#7c2332" stroke-width="5"/>
+          </svg>
+        </div>
+        <div class="title-copy">
+          <p class="title-kicker">Uma aventura de estrelas</p>
+          <h1 class="game-title">
+            <span class="title-small">Mundo dos</span>
+            <span class="title-big">Cogumelos</span>
+          </h1>
+          <p class="title-story">As estrelas do reino foram roubadas! Ajude Tico a resgatar seus amigos, atravessar 5 mundos e derrotar os chefes.</p>
+          <button id="btn-play" class="btn btn-play" type="button">Play</button>
+          <div class="title-meta">
+            <span id="high-score">Recorde: 000000</span>
+            <button id="btn-tilt" class="btn btn-ghost btn-small" type="button">Inclinação</button>
+          </div>
+          <p class="title-help">Setas / WASD para andar · Espaço para pular · Shift para correr</p>
+        </div>
+      </div>
+      <div class="title-badges" aria-hidden="true">
+        <span>5 mundos</span><span>15 fases</span><span>5 chefes</span>
+      </div>
+    </section>
+
+    <section id="pause-screen" class="overlay dialog hidden" role="dialog" aria-modal="true" aria-label="Jogo pausado">
+      <div class="panel">
+        <div class="panel-puff" aria-hidden="true"></div>
+        <h2>Pausa</h2>
+        <p class="panel-sub">Respire fundo. As estrelas esperam por você.</p>
+        <button id="btn-resume" class="btn" type="button">Continuar</button>
+        <button id="btn-restart" class="btn btn-secondary" type="button">Reiniciar fase</button>
+        <button id="btn-tilt-pause" class="btn btn-ghost" type="button">Inclinação</button>
+        <button id="btn-menu" class="btn btn-ghost" type="button">Voltar ao menu</button>
+      </div>
+    </section>
+
+    <section id="clear-screen" class="overlay dialog hidden" role="dialog" aria-modal="true" aria-label="Fase concluída">
+      <div class="panel panel-clear">
+        <div class="panel-puff" aria-hidden="true"></div>
+        <p class="panel-kicker">Portal atravessado!</p>
+        <h2>Fase concluída!</h2>
+        <p id="clear-level" class="panel-sub">Colinas de Cogumelo</p>
+        <div class="result-grid">
+          <div><span>Estrelas</span><strong id="clear-stars">★ 0</strong></div>
+          <div><span>Moedas</span><strong id="clear-coins">0</strong></div>
+          <div><span>Bônus</span><strong id="clear-bonus">+0</strong></div>
+          <div><span>Pontos</span><strong id="clear-score">0</strong></div>
+        </div>
+        <p id="clear-note" class="panel-note"></p>
+        <button id="btn-next" class="btn" type="button">Próxima fase</button>
+      </div>
+    </section>
+
+    <section id="gameover-screen" class="overlay dialog hidden" role="dialog" aria-modal="true" aria-label="Fim de jogo">
+      <div class="panel panel-gameover">
+        <div class="panel-puff" aria-hidden="true"></div>
+        <p class="panel-kicker">As estrelas ficaram tristes…</p>
+        <h2>Fim de jogo</h2>
+        <p id="gameover-level" class="panel-sub">Colinas de Cogumelo</p>
+        <div class="result-grid">
+          <div><span>Pontos</span><strong id="gameover-score">0</strong></div>
+          <div><span>Moedas</span><strong id="gameover-coins">0</strong></div>
+        </div>
+        <p class="panel-note">Mas toda aventura merece outra chance!</p>
+        <button id="btn-retry" class="btn" type="button">Tentar de novo</button>
+        <button id="btn-gameover-menu" class="btn btn-ghost" type="button">Voltar ao menu</button>
+      </div>
+    </section>
+
+    <section id="victory-screen" class="overlay dialog hidden" role="dialog" aria-modal="true" aria-label="Vitória">
+      <div class="panel panel-victory">
+        <div class="panel-puff" aria-hidden="true"></div>
+        <p class="panel-kicker">O reino voltou a brilhar!</p>
+        <h2>Você venceu!</h2>
+        <p class="panel-sub">Todas as estrelas foram resgatadas. Tico salvou seus amigos!</p>
+        <div class="result-grid result-grid-wide">
+          <div><span>Pontuação</span><strong id="victory-score">0</strong></div>
+          <div><span>Moedas</span><strong id="victory-coins">0</strong></div>
+          <div><span>Estrelas</span><strong id="victory-stars">0</strong></div>
+          <div><span>Inimigos</span><strong id="victory-enemies">0</strong></div>
+        </div>
+        <p id="victory-record" class="panel-note"></p>
+        <button id="btn-victory-restart" class="btn" type="button">Jogar novamente</button>
+        <button id="btn-victory-menu" class="btn btn-ghost" type="button">Voltar ao menu</button>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
